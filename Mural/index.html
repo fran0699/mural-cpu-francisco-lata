@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mural Interactivo: Estructura y funcionamiento de la CPU</title>
+  <meta name="description" content="Mural interactivo que explica la estructura y funcionamiento de la CPU y los puertos e interfaces de un computador. Incluye textos, tablas, videos y enlaces." />
+  <style>
+    :root{
+      --bg:#0f172a;           /* slate-900 */
+      --card:#0b1222;         /* darker card */
+      --muted:#94a3b8;        /* slate-400 */
+      --text:#e2e8f0;         /* slate-200 */
+      --brand:#38bdf8;        /* sky-400 */
+      --brand2:#a78bfa;       /* violet-400 */
+      --ok:#22c55e;           /* green-500 */
+      --warn:#f59e0b;         /* amber-500 */
+      --bad:#ef4444;          /* red-500 */
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(56,189,248,.15), transparent 60%),
+                  radial-gradient(900px 500px at 100% 10%, rgba(167,139,250,.15), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.55;
+    }
+    a{color:var(--brand)}
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter:saturate(150%) blur(8px);
+      background:rgba(11,18,34,.7);
+      border-bottom:1px solid rgba(148,163,184,.15);
+    }
+    .wrap{max-width:1200px; margin:0 auto; padding:22px}
+    .hero{display:grid; grid-template-columns:1fr; gap:20px; align-items:center}
+    .title{font-size:clamp(28px, 4vw, 44px); font-weight:800; letter-spacing:.2px}
+    .subtitle{font-size:clamp(16px,2.2vw,20px); color:var(--muted)}
+    nav{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px}
+    nav a{
+      text-decoration:none; color:var(--text);
+      padding:10px 14px; border:1px solid rgba(148,163,184,.25);
+      border-radius:999px; transition:.2s ease; background:#0b122280;
+    }
+    nav a:hover{transform:translateY(-1px); box-shadow:var(--shadow); border-color:rgba(56,189,248,.5)}
+
+    .grid{display:grid; gap:22px}
+    @media(min-width:960px){.grid{grid-template-columns:1.05fr .95fr}}
+
+    .card{background:linear-gradient(180deg, rgba(148,163,184,.07), rgba(148,163,184,.03));
+          border:1px solid rgba(148,163,184,.15); padding:22px; border-radius:var(--radius); box-shadow:var(--shadow)}
+    h2{margin:0 0 12px; font-size:clamp(22px,3vw,30px)}
+    h3{margin:18px 0 6px; font-size:clamp(18px,2.4vw,22px)}
+    p{margin:8px 0}
+    .badge{display:inline-block; padding:6px 10px; border-radius:8px; font-size:12px; letter-spacing:.3px; border:1px solid rgba(148,163,184,.3); color:var(--muted)}
+
+    details{background:#0b1222; border:1px solid rgba(148,163,184,.18); border-radius:16px; overflow:hidden}
+    details+details{margin-top:14px}
+    summary{list-style:none; cursor:pointer; padding:16px 18px; font-weight:700; letter-spacing:.3px}
+    summary::-webkit-details-marker{display:none}
+    details[open] summary{border-bottom:1px dashed rgba(148,163,184,.2)}
+    .content{padding:16px 18px}
+
+    .kpi{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:10px}
+    .kpi .item{background:#0b1222; border:1px solid rgba(148,163,184,.18); border-radius:18px; padding:14px; text-align:center}
+    .kpi .item .n{font-weight:800; font-size:20px}
+    .kpi .item .l{font-size:12px; color:var(--muted)}
+
+    /* Tabla puertos */
+    .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    input[type="search"], select{background:#0b1222; color:var(--text); border:1px solid rgba(148,163,184,.35); border-radius:12px; padding:10px 12px; outline:none}
+    table{width:100%; border-collapse:collapse; margin-top:10px}
+    th, td{padding:12px 10px; border-bottom:1px dashed rgba(148,163,184,.2); vertical-align:top}
+    th{color:#cbd5e1; text-align:left; font-weight:700}
+    tr:hover{background:rgba(56,189,248,.06)}
+    .chip{display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid rgba(148,163,184,.35); font-size:12px; color:#cbd5e1}
+
+    /* Galería */
+    .gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px}
+    .gallery img{width:100%; height:160px; object-fit:cover; border-radius:14px; border:1px solid rgba(148,163,184,.18); cursor:zoom-in}
+    dialog{border:none; border-radius:16px; padding:0; overflow:hidden; background:#0b1222}
+    dialog::backdrop{background:rgba(2,6,23,.6)}
+    .dlg-head{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid rgba(148,163,184,.18)}
+    .dlg-head a{font-size:12px}
+    .dlg-body{padding:10px}
+    .dlg-body img{max-width:90vw; max-height:75vh; display:block}
+
+    footer{margin:40px 0 80px; color:var(--muted)}
+    .small{font-size:12px; color:var(--muted)}
+    .pill{display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(167,139,250,.15); border:1px solid rgba(167,139,250,.45); color:#ddd; font-size:12px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <div>
+        <div class="pill">Organización y Arquitectura de Computadores I</div>
+        <div class="title">Mural Interactivo: Estructura y funcionamiento de la CPU</div>
+        <p class="subtitle"><strong>Francisco Lata</strong> — Universidad Tecnológica de Panamá</p>
+        <nav>
+          <a href="#intro">Introducción</a>
+          <a href="#competencias">Componentes clave</a>
+          <a href="#descripcion">Descripción detallada</a>
+          <a href="#puertos">Puertos e interfaces</a>
+          <a href="#recursos">Imágenes y videos</a>
+          <a href="#conclusion">Conclusión</a>
+          <a href="#bibliografia">Bibliografía</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="intro" class="card">
+      <h2>Introducción</h2>
+      <p>
+        La <strong>Unidad Central de Procesamiento (CPU)</strong> es el “cerebro” del computador. Ejecuta instrucciones, coordina el flujo de datos y realiza operaciones aritméticas y lógicas que permiten que el software funcione. Comprender su estructura —<em>unidad de control</em>, <em>unidad aritmético‑lógica (ALU)</em>, <em>registros</em>, <em>memoria caché</em> y <em>buses</em>— es clave para optimizar rendimiento y tomar decisiones de diseño de hardware y software.
+      </p>
+      <p>
+        Este mural reúne explicaciones concisas, comparativas y recursos multimedia para visualizar cómo la CPU <em>busca</em>, <em>decodifica</em>, <em>ejecuta</em> y <em>escribe</em> resultados, además de un panorama de los principales <strong>puertos e interfaces</strong> de un computador moderno (datos, video, red y almacenamiento), sus <em>tipos</em>, <em>características</em> y <em>funciones</em>.
+      </p>
+      <div class="kpi">
+        <div class="item"><div class="n">4</div><div class="l">Fases del ciclo de instrucción</div></div>
+        <div class="item"><div class="n">5</div><div class="l">Bloques funcionales de CPU</div></div>
+        <div class="item"><div class="n">15+</div><div class="l">Puertos/Interfaces comparados</div></div>
+        <div class="item"><div class="n">8</div><div class="l">Recursos multimedia</div></div>
+      </div>
+    </section>
+
+    <section id="competencias" class="card">
+      <h2>Componentes clave de la CPU</h2>
+      <ul>
+        <li><strong>Unidad de control (CU):</strong> coordina el flujo de datos y genera las señales de control para el resto de unidades.</li>
+        <li><strong>Unidad aritmético‑lógica (ALU):</strong> ejecuta operaciones aritméticas (suma, resta, etc.) y lógicas (AND, OR, NOT, comparaciones).</li>
+        <li><strong>Registros:</strong> memorias internas de muy alta velocidad (PC/contador de programa, IR/registro de instrucción, acumuladores, flags, propósito general).</li>
+        <li><strong>Memoria caché:</strong> niveles L1/L2/L3 que acercan datos e instrucciones frecuentes para reducir latencia.</li>
+        <li><strong>Buses:</strong> <em>de datos</em>, <em>de direcciones</em> y <em>de control</em> interconectan CPU, memoria y E/S.</li>
+      </ul>
+    </section>
+
+    <section id="descripcion" class="card">
+      <h2>Descripción detallada</h2>
+
+      <details open>
+        <summary>1) Ciclo de instrucción: <span class="badge">Fetch → Decode → Execute → Writeback</span></summary>
+        <div class="content">
+          <p>La mayoría de las CPU siguen el ciclo de instrucción: <em>buscar</em> la instrucción en memoria (usando el <strong>contador de programa</strong>), <em>decodificarla</em> (la <strong>unidad de control</strong> la traduce a señales), <em>ejecutarla</em> en la <strong>ALU</strong> y <em>escribir</em> el resultado en registros o memoria.</p>
+          <ul>
+            <li><strong>Registros involucrados:</strong> PC, IR, acumulador, banderas (ZF, CF, etc.), registros de propósito general.</li>
+            <li><strong>Optimizaciones modernas:</strong> segmentación (<em>pipeline</em>), ejecución fuera de orden y predicción de saltos.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary>2) Unidad de control (UC)</summary>
+        <div class="content">
+          <p>Orquesta el procesador: lee instrucciones, las decodifica y emite señales que activan la ALU, los registros y los buses. Puede ser <em>cableada</em> (rápida, típica en RISC) o <em>microprogramada</em> (flexible, común en diseños complejos).</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>3) Unidad aritmético‑lógica (ALU)</summary>
+        <div class="content">
+          <p>Realiza operaciones aritméticas (suma, resta, multiplicación, división) y lógicas (AND, OR, XOR, NOT, comparaciones). Actualiza banderas de estado y toma datos desde registros.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>4) Registros del procesador</summary>
+        <div class="content">
+          <ul>
+            <li><strong>PC:</strong> dirección de la siguiente instrucción.</li>
+            <li><strong>IR:</strong> instrucción actual.</li>
+            <li><strong>Acumulador/propósito general:</strong> operandos y resultados intermedios.</li>
+            <li><strong>Flags:</strong> estado (cero, acarreo, signo, overflow, etc.).</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary>5) Memoria caché (L1/L2/L3)</summary>
+        <div class="content">
+          <p><strong>L1</strong> (datos/instrucciones) es la más rápida y pequeña; <strong>L2</strong> es mayor y algo más lenta; <strong>L3</strong> es compartida entre núcleos en muchos diseños. Su objetivo es reducir los accesos a RAM.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>6) Interconexión por buses</summary>
+        <div class="content">
+          <p>La CPU se comunica con memoria y periféricos usando tres buses principales:</p>
+          <ul>
+            <li><strong>Bus de direcciones:</strong> selecciona la ubicación de memoria o dispositivo.</li>
+            <li><strong>Bus de datos:</strong> transporta los datos.</li>
+            <li><strong>Bus de control:</strong> sincroniza y arbitra (lectura/escritura, interrupciones, etc.).</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <section id="puertos" class="card">
+      <h2>Puertos e interfaces del computador</h2>
+      <p>Comparativa de <em>tipo</em>, <em>función</em> y <em>velocidades típicas</em>. Usa el buscador para filtrar por nombre, categoría o función.</p>
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Buscar: USB, HDMI, red, almacenamiento, legado…" oninput="filterRows()" />
+        <select id="cat" onchange="filterRows()">
+          <option value="">Todas las categorías</option>
+          <option>Datos</option>
+          <option>Video</option>
+          <option>Red</option>
+          <option>Almacenamiento</option>
+          <option>Audio</option>
+          <option>Legado</option>
+        </select>
+      </div>
+      <div class="small" style="margin-top:6px">Nota: las tasas listadas son teóricas o máximas típicas; el rendimiento real depende de cables, versión y dispositivos.</div>
+      <table id="ports">
+        <thead>
+          <tr><th>Interfaz / Puerto</th><th>Categoría</th><th>Velocidad típica (máx.)</th><th>Función principal</th><th>Observaciones</th></tr>
+        </thead>
+        <tbody>
+          <tr data-cat="Datos"><td><strong>USB 2.0 (Tipo A/B/Micro)</strong></td><td><span class="chip">Datos</span></td><td>480 Mb/s</td><td>Periféricos, almacenamiento lento</td><td>Compatibilidad amplia</td></tr>
+          <tr data-cat="Datos"><td><strong>USB 3.0 / 3.1 Gen 1</strong></td><td><span class="chip">Datos</span></td><td>hasta 4,8 Gb/s</td><td>Discos externos, hubs</td><td>Conocido como SuperSpeed</td></tr>
+          <tr data-cat="Datos"><td><strong>USB 3.2 Gen 2</strong></td><td><span class="chip">Datos</span></td><td>hasta 10 Gb/s</td><td>SSD externos, docks</td><td>SuperSpeed+</td></tr>
+          <tr data-cat="Datos"><td><strong>USB 3.2 Gen 2x2</strong></td><td><span class="chip">Datos</span></td><td>hasta 20 Gb/s</td><td>SSD externos de alto rendimiento</td><td>Requiere USB‑C y cable adecuado</td></tr>
+          <tr data-cat="Datos"><td><strong>USB‑C (conector)</strong></td><td><span class="chip">Datos</span></td><td>—</td><td>Solo describe el <em>conector</em></td><td>Puede transportar USB 2.x/3.x/USB4 y modo alterno</td></tr>
+          <tr data-cat="Datos"><td><strong>USB4</strong></td><td><span class="chip">Datos</span></td><td>20–40 Gb/s</td><td>Datos de alta velocidad + vídeo</td><td>Basado en Thunderbolt; usa USB‑C</td></tr>
+          <tr data-cat="Datos"><td><strong>Thunderbolt 3/4 (USB‑C)</strong></td><td><span class="chip">Datos</span></td><td>hasta 40 Gb/s</td><td>Datos, vídeo y energía</td><td>Encadena dispositivos; baja latencia</td></tr>
+
+          <tr data-cat="Video"><td><strong>HDMI 2.1</strong></td><td><span class="chip">Video</span></td><td>hasta 48 Gb/s</td><td>Monitores/TV, audio multicanal</td><td>Soporta 4K120/8K60, VRR/ALLM</td></tr>
+          <tr data-cat="Video"><td><strong>DisplayPort 1.2–1.4</strong></td><td><span class="chip">Video</span></td><td>hasta 21,6–32,4 Gb/s</td><td>Monitores de PC</td><td>Soporta cadena en monitores (MST)</td></tr>
+          <tr data-cat="Video"><td><strong>VGA (DE‑15)</strong></td><td><span class="chip">Video</span></td><td>—</td><td>Video analógico legado</td><td>Reemplazado por HDMI/DP</td></tr>
+          <tr data-cat="Video"><td><strong>DVI‑D/DVI‑I</strong></td><td><span class="chip">Video</span></td><td>hasta 7,9 Gb/s (Dual‑Link)</td><td>Video digital/mixto</td><td>En desuso</td></tr>
+
+          <tr data-cat="Red"><td><strong>Ethernet 10/100</strong></td><td><span class="chip">Red</span></td><td>10–100 Mb/s</td><td>LAN básica</td><td>Conector RJ‑45</td></tr>
+          <tr data-cat="Red"><td><strong>Gigabit Ethernet (1000BASE‑T)</strong></td><td><span class="chip">Red</span></td><td>1 Gb/s</td><td>LAN estándar</td><td>Cable Cat 5e/6</td></tr>
+          <tr data-cat="Red"><td><strong>10GBASE‑T</strong></td><td><span class="chip">Red</span></td><td>10 Gb/s</td><td>Backbone/servidores</td><td>Cable Cat 6A/7</td></tr>
+
+          <tr data-cat="Almacenamiento"><td><strong>SATA III (6 Gb/s)</strong></td><td><span class="chip">Almacenamiento</span></td><td>hasta ~600 MB/s reales</td><td>HDD/SSD SATA</td><td>Codificación 8b/10b</td></tr>
+          <tr data-cat="Almacenamiento"><td><strong>M.2 (NVMe sobre PCIe)</strong></td><td><span class="chip">Almacenamiento</span></td><td>depende de PCIe</td><td>SSD NVMe de baja latencia</td><td>Conexión directa al bus PCIe</td></tr>
+          <tr data-cat="Almacenamiento"><td><strong>U.2 / EDSFF</strong></td><td><span class="chip">Almacenamiento</span></td><td>depende de PCIe</td><td>SSD NVMe en servidores</td><td>Hot‑swap en racks</td></tr>
+
+          <tr data-cat="Audio"><td><strong>Jack 3.5 mm (TRS/TRRS)</strong></td><td><span class="chip">Audio</span></td><td>—</td><td>Entrada/salida de audio analógico</td><td>Compatibilidad universal</td></tr>
+
+          <tr data-cat="Legado"><td><strong>PS/2</strong></td><td><span class="chip">Legado</span></td><td>—</td><td>Teclado/ratón antiguos</td><td>Conectores mini‑DIN púrpura/verde</td></tr>
+          <tr data-cat="Legado"><td><strong>IEEE 1394 (FireWire)</strong></td><td><span class="chip">Legado</span></td><td>400–3200 Mb/s</td><td>Video digital, audio profesional</td><td>En desuso frente a USB/Thunderbolt</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="recursos" class="card">
+      <h2>Imágenes (clic para ampliar) y videos</h2>
+      <div class="gallery" id="galeria">
+        <img src="die-de-CPU-Intel-80386DX.jpg" alt="Die de CPU Intel 80386DX" onclick="openDlg(this)"/>
+        <img src="die-de-cpu-intel-8086.jpg" alt="Die de CPU Intel 8086" onclick="openDlg(this)"/>
+        <img src="Die-de-coprocesador-80387.jpg" alt="Die de coprocesador 80387" onclick="openDlg(this)"/>
+        <img src="die-de-cpu-intel-80486.jpg" alt="Die de CPU Intel 80486" onclick="openDlg(this)"/>
+      </div>
+
+      <div style="margin-top:14px" class="grid">
+        <div class="card">
+          <h3>Video: CPU, UC y ALU (español)</h3>
+          <div class="small">Fuente: YouTube</div>
+          <div style="position:relative; padding-top:56.25%"><iframe style="position:absolute; inset:0; width:100%; height:100%; border:0; border-radius:14px" src="https://www.youtube.com/embed/-URf73z9tKY" title="CPU UC ALU" allowfullscreen></iframe></div>
+        </div>
+        <div class="card">
+          <h3>Video: ¿Qué es una CPU?</h3>
+          <div class="small">Fuente: YouTube</div>
+          <div style="position:relative; padding-top:56.25%"><iframe style="position:absolute; inset:0; width:100%; height:100%; border:0; border-radius:14px" src="https://www.youtube.com/embed/rPb2im8kWC0" title="¿Qué es una CPU?" allowfullscreen></iframe></div>
+        </div>
+      </div>
+
+      <dialog id="dlg">
+        <div class="dlg-head">
+          <span>Vista ampliada</span>
+          <a href="#" onclick="closeDlg();return false;">Cerrar ✕</a>
+        </div>
+        <div class="dlg-body"><img id="dlgimg" alt="Imagen ampliada" /></div>
+      </dialog>
+    </section>
+
+    <section id="conclusion" class="card">
+      <h2>Conclusión</h2>
+      <p>
+        La CPU integra bloques especializados que, coordinados por la <em>unidad de control</em> y conectados mediante <em>buses</em>, ejecutan el ciclo de instrucción con apoyo de <em>registros</em> y <em>memoria caché</em>. En el ecosistema del computador, los <strong>puertos e interfaces</strong> permiten conectar almacenamiento, video, red y audio con prestaciones muy distintas. Conocer su función y sus límites ayuda a seleccionar correctamente cables y dispositivos, diagnosticar cuellos de botella y diseñar sistemas eficientes.
+      </p>
+    </section>
+
+    <section id="bibliografia" class="card">
+      <h2>Bibliografía</h2>
+      <ul>
+        <li>CPU – estructura y ciclo de instrucción. Wikipedia: <a href="https://es.wikipedia.org/wiki/Unidad_central_de_procesamiento" target="_blank" rel="noopener">Unidad central de procesamiento</a> y <a href="https://es.wikipedia.org/wiki/Ciclo_de_instrucci%C3%B3n" target="_blank" rel="noopener">Ciclo de instrucción</a>.</li>
+        <li>Unidad de control (UC). Wikipedia: <a href="https://es.wikipedia.org/wiki/Unidad_de_control" target="_blank" rel="noopener">Unidad de control</a>.</li>
+        <li>Unidad aritmético‑lógica (ALU). Wikipedia: <a href="https://es.wikipedia.org/wiki/Unidad_aritm%C3%A9tica_l%C3%B3gica" target="_blank" rel="noopener">UAL/ALU</a>.</li>
+        <li>Registros del procesador. Wikipedia: <a href="https://es.wikipedia.org/wiki/Registro_(hardware)" target="_blank" rel="noopener">Registro (hardware)</a>.</li>
+        <li>Memoria caché y niveles. Wikipedia: <a href="https://es.wikipedia.org/wiki/Cach%C3%A9_(inform%C3%A1tica)" target="_blank" rel="noopener">Caché</a>.</li>
+        <li>Buses (datos, direcciones, control). Wikipedia: <a href="https://es.wikipedia.org/wiki/Bus_(inform%C3%A1tica)" target="_blank" rel="noopener">Bus (informática)</a>.</li>
+        <li>USB (2.0/3.x) y USB‑C/USB4. Wikipedia: <a href="https://es.wikipedia.org/wiki/Universal_Serial_Bus" target="_blank" rel="noopener">USB</a>, <a href="https://es.wikipedia.org/wiki/USB_3.0" target="_blank" rel="noopener">USB 3.0</a>, <a href="https://es.wikipedia.org/wiki/USB4" target="_blank" rel="noopener">USB4</a>, <a href="https://es.wikipedia.org/wiki/USB-C" target="_blank" rel="noopener">USB‑C</a>.</li>
+        <li>Thunderbolt (comparativa de velocidades). Wikipedia: <a href="https://es.wikipedia.org/wiki/IEEE_1394" target="_blank" rel="noopener">IEEE 1394 (tabla comparativa)</a>.</li>
+        <li>HDMI 2.1 (48 Gb/s). Wikipedia: <a href="https://es.wikipedia.org/wiki/High-Definition_Multimedia_Interface" target="_blank" rel="noopener">HDMI</a>.</li>
+        <li>DisplayPort (1.2/1.4). Wikipedia: <a href="https://es.wikipedia.org/wiki/DisplayPort" target="_blank" rel="noopener">DisplayPort</a>.</li>
+        <li>Ethernet (10/100/1000/10G). Wikipedia: <a href="https://es.wikipedia.org/wiki/Ethernet" target="_blank" rel="noopener">Ethernet</a> y conectores <a href="https://es.wikipedia.org/wiki/RJ-45" target="_blank" rel="noopener">RJ‑45</a>.</li>
+        <li>Almacenamiento SATA / NVMe. Wikipedia: <a href="https://es.wikipedia.org/wiki/Serial_ATA" target="_blank" rel="noopener">Serial ATA</a>, <a href="https://es.wikipedia.org/wiki/NVM_Express" target="_blank" rel="noopener">NVM Express</a>, <a href="https://es.wikipedia.org/wiki/M.2" target="_blank" rel="noopener">M.2</a>, <a href="https://es.wikipedia.org/wiki/U.2" target="_blank" rel="noopener">U.2</a>, <a href="https://es.wikipedia.org/wiki/Enterprise_and_Data_Center_Standard_Form_Factor" target="_blank" rel="noopener">EDSFF</a>.</li>
+        <li>Imágenes de chips (Wikimedia Commons): 80386, 8086, 80387, 80486.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <div class="small">© 2025 Francisco Lata. Mural elaborado para la asignatura Organización y Arquitectura de Computadores I (UTP).</div>
+    </footer>
+  </main>
+
+  <script>
+    function filterRows(){
+      const q = document.getElementById('q').value.toLowerCase().trim();
+      const cat = document.getElementById('cat').value;
+      const rows = document.querySelectorAll('#ports tbody tr');
+      rows.forEach(tr=>{
+        const text = tr.innerText.toLowerCase();
+        const okQ = !q || text.includes(q);
+        const okCat = !cat || tr.dataset.cat === cat;
+        tr.style.display = (okQ && okCat)?'':'none';
+      });
+    }
+    function openDlg(img){
+      const dlg=document.getElementById('dlg');
+      const dimg=document.getElementById('dlgimg');
+      dimg.src=img.src; dimg.alt=img.alt;
+      dlg.showModal();
+    }
+    function closeDlg(){document.getElementById('dlg').close()}
+  </script>
+</body>
+</html>
